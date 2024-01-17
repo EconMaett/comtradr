@@ -7,8 +7,11 @@
 ## Installation ----
 
 # install.packages("comtradr")
-# Not yet on CRAN
+# The package is not yet on CRAN
 devtools::install_github(repo = "ropensci/comtradr@main")
+
+# Once it is on CRAN, use
+# install.packages("comtradr")
 
 
 ## Usage ----
@@ -48,10 +51,10 @@ Sys.getenv("COMTRADE_PRIMARY")
 
 # You can request a maximal interval of twelve years.
 example1 <- comtradr::ct_get_data(
-  reporter = "CHN",
-  partner = c("ARG", "DEU"),
+  reporter  = "CHN",
+  partner    = c("ARG", "DEU"),
   start_date = 2010,
-  end_date = 2012
+  end_date   = 2012
 )
 
 # Inspect the return data
@@ -64,19 +67,23 @@ str(example1)
 # to all other countries for years 2007 through 2011.
 
 # This vector will be passed to the API query.
-wine_codes <- ct_commodity_lookup("wine", return_code = TRUE, return_char = TRUE)
+wine_codes <- ct_commodity_lookup(
+  search_terms = "wine", 
+  return_code  = TRUE, 
+  return_char  = TRUE
+)
 
 # API query
 example2 <- ct_get_data(
   reporter = "ARG",
   flow_direction = "export",
-  partner = "CHN",
+  partner = "all_countries",
   start_date = 2007,
-  end_date = 2011,
+  end_date   = 2011,
   commodity_code = wine_codes
 )
 
-# Note: partner = "all" does not work.
+# Note: partner = "all" does not work. Use "all_countreis" instead.
 
 # Inspect the output
 str(example2)
@@ -89,10 +96,10 @@ str(example2)
 # for the last five years.
 example_3 <- ct_get_data(
   reporter = "USA",
-  partner = c("DEU", "FRA", "JPN", "MEX"),
+  partner  = c("DEU", "FRA", "JPN", "MEX"),
   commodity_code = "TOTAL",
   start_date = 2018,
-  end_date = 2023,
+  end_date   = 2023,
   flow_direction = "import"
 )
 
@@ -112,29 +119,33 @@ str(example_3)
 # all monthly data for a single year (API max of twelve months per call)
 q <- ct_get_data(
   reporter = "USA",
-  partner = c("DEU", "FRA", "JPN", "MEX"),
+  partner  = c("DEU", "FRA", "JPN", "MEX"),
   flow_direction = "import",
   start_date = 2012,
-  end_date = 2012,
+  end_date  = 2012,
   freq = "M"
 )
 
-# monthly data fro specific span of months (API max of twelve months per call)
+str(q)
+
+# monthly data, specific span of months (API max of twelve months per call)
 q <- ct_get_data(
   reporter = "USA",
-  partner = c("DEU", "FRA", "JPN", "MEX"),
+  partner  = c("DEU", "FRA", "JPN", "MEX"),
   flow_direction = "import",
   start_date = "2012-03",
-  end_date = "2012-07",
+  end_date   = "2012-07",
   freq = "M"
 )
+
+str(q)
 
 
 ### Example 5 ----
 
 # Search trade related to specific commodities,
 # say, tomatoes.
-ct_commodity_lookup("tomato")
+print(ct_commodity_lookup("tomato"))
 
 # If we want to search for shipment data on all
 # of the commodity descriptions listed,
@@ -143,18 +154,22 @@ ct_commodity_lookup("tomato")
 
 tomato_codes <- ct_commodity_lookup(
   search_terms = "tomato",
-  return_code = TRUE,
-  return_char = TRUE
+  return_code  = TRUE,
+  return_char  = TRUE
 )
+
+print(tomato_codes)
 
 q <- ct_get_data(
   reporter = "USA",
-  partner = c("DEU", "FRA", "JPN", "MEX"),
+  partner  = c("DEU", "FRA", "JPN", "MEX"),
   commodity_code = tomato_codes,
   start_date = "2012",
-  end_date = "2013",
+  end_date   = "2013",
   flow_direction = "import"
 )
+
+str(q)
 
 
 ### Example 6 ----
@@ -164,18 +179,24 @@ q <- ct_get_data(
 # to the API call.
 q <- ct_get_data(
   reporter = "USA",
-  partner = c("DEU", "FRA", "JPN", "MEX"),
+  partner  = c("DEU", "FRA", "JPN", "MEX"),
   commodity_code = c("0702", "070200", "2002", "200210", "200290"),
   start_date = "2012",
-  end_date = "2013",
+  end_date   = "2013",
   flow_direction = "import"
 )
+
+str(q)
 
 
 ## API search metadata ----
 
 # In addition to the trade data, each API call
 # return object contains metadata as attributes.
+
+attributes(q)
+# names, class, row.names, url, time
+
 
 # The URL of the API call
 attributes(q)$url
@@ -190,10 +211,12 @@ attributes(q)$time
 
 # The function ct_commodity_lookup() can take
 # multiple search terms as input arguments.
-ct_commodity_lookup(
+ct_lookup <- ct_commodity_lookup(
   search_terms = c("tomato", "orange"), 
-  return_char = TRUE
+  return_char  = TRUE
 )
+
+head(ct_lookup)
 
 
 ### Example 2 ----
@@ -201,10 +224,15 @@ ct_commodity_lookup(
 # ct_commodity_lookup() can return a vector 
 # or a named list, depending on the parameter
 # return_char
-ct_commodity_lookup(
+ct_lookup <- ct_commodity_lookup(
   search_terms = c("tomato", "orange"), 
-  return_char = FALSE
+  return_char  = FALSE
 )
+
+names(ct_lookup)
+# "tomato" "organge"
+ct_lookup$tomato
+ct_lookup$orange
 
 
 ### Example 3 ----
@@ -214,18 +242,20 @@ ct_commodity_lookup(
 # ct_commodity_lookup(), a warning will be printed
 # to the console.
 
-ct_commodity_lookup(
+ct_lookup <- ct_commodity_lookup(
   search_terms = c("tomato", "fjdklasf"),
   verbose = TRUE
 )
+
 # Warning:
 # There were no matching results found for inputs:
 # fjdklasf
 
 
+
 ## API rate limits ----
 
-# The Comtrade API imposes rate limits on users.
+# The UN Comtrade API imposes rate limits on users.
 
 # comtradr features automated throttling of API calls to
 # ensure the user stays within the limits defined by Comtrade.
@@ -292,10 +322,11 @@ ct_commodity_lookup(
 # R session.
 
 # It will print a message indicating whether any updates are found.
-ct_commodity_lookup(
+ct_lookup <- ct_commodity_lookup(
   search_terms = "tomato",
   update = TRUE
 )
+
 
 # If any updates are found, a message will state which
 # reference tables were updated.
@@ -396,9 +427,7 @@ ggplot(
   ) +
   theme_minimal()
 
-ggsave(filename = "China-Exports.png", width = 8, height = 4)
-graphics.off()
-
+ggsave(filename = "china-exports.png", width = 8, height = 4)
 graphics.off()
 
 
@@ -410,23 +439,23 @@ graphics.off()
 # Collect the commodity codes related to shrimp.
 shrimp_codes <- ct_commodity_lookup(
   search_terms = "shrimp",
-  return_code = TRUE,
-  return_char = TRUE
+  return_code  = TRUE,
+  return_char  = TRUE
 )
 
 # Comtrade API query
 example_3 <- ct_get_data(
   reporter = "THA",
-  partner = "all_countries",
+  partner  = "all_countries",
   flow_direction = "export",
   start_date = 2007,
-  end_date = 2011,
+  end_date   = 2011,
   commodity_code = shrimp_codes
 )
 
 library(dplyr)
 
-# Create a country specific dataframe called
+# Create a country specific data frame called
 # "total weight per year"
 plotdf <- example_3 |> 
   group_by(partner_desc, period) |> 
@@ -445,6 +474,7 @@ top8 <- plotdf |>
   arrange(desc(kg)) |> 
   pull(partner_desc)
 
+print(top8)
 
 # then subset plotdf to only include observations
 # related to those countries/areas.
@@ -482,7 +512,7 @@ ggplot(
   ) +
   theme_minimal()
 
-ggsave(filename = "Thailand-Exports.png", width = 8, height = 4)
+ggsave(filename = "thailand-exports.png", width = 8, height = 4)
 
 graphics.off()
 
@@ -576,7 +606,7 @@ dt <- ct_get_data(
   commodity_code = "everything",
   flow_direction = "everything",
   start_date = "2010",
-  end_date = "2011"
+  end_date  = "2011"
 )
 
 # Using "everything" parameters leads to large
@@ -590,3 +620,5 @@ dim(dt)
 # 78398 x 47
 object.size(dt)
 # 24605160 bytes
+
+# END
